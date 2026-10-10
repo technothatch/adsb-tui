@@ -119,7 +119,7 @@ func TestRangeLabelModes(t *testing.T) {
 			joined := strings.Join(plainLines(Range(o)), "\n")
 			if tt.plot {
 				for _, mark := range []string{"@", "!", "*"} {
-					if !strings.Contains(joined, string(mark)) {
+					if !strings.Contains(joined, mark) {
 						t.Errorf("missing blip %q", mark)
 					}
 				}

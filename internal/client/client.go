@@ -62,7 +62,7 @@ func (c *Client) BaseURL() string {
 // decoder data.
 func (c *Client) FetchAircraft(ctx context.Context) (Doc, error) {
 	var doc Doc
-	if _, err := c.getJSON(ctx, AircraftPaths, looksLikeAircraftDoc, &doc); err != nil {
+	if err := c.getJSON(ctx, AircraftPaths, looksLikeAircraftDoc, &doc); err != nil {
 		return Doc{}, err
 	}
 	return doc, nil
@@ -73,7 +73,7 @@ func (c *Client) FetchAircraft(ctx context.Context) (Doc, error) {
 // back to a table-only view.
 func (c *Client) FetchReceiver(ctx context.Context) (Receiver, error) {
 	var recv Receiver
-	if _, err := c.getJSON(ctx, ReceiverPaths, looksLikeJSONObject, &recv); err != nil {
+	if err := c.getJSON(ctx, ReceiverPaths, looksLikeJSONObject, &recv); err != nil {
 		return Receiver{}, err
 	}
 	return recv, nil
@@ -83,13 +83,13 @@ func (c *Client) FetchReceiver(ctx context.Context) (Receiver, error) {
 // is HTTP 200, passes validate and unmarshals into v. Transport errors
 // abort immediately: if the host is down, the other paths on the same
 // host are down too.
-func (c *Client) getJSON(ctx context.Context, paths []string, validate func([]byte) bool, v any) (string, error) {
+func (c *Client) getJSON(ctx context.Context, paths []string, validate func([]byte) bool, v any) error {
 	var attempts []string
 	for _, p := range paths {
 		url := c.baseURL + p
 		body, status, err := c.get(ctx, url)
 		if err != nil {
-			return "", err
+			return err
 		}
 		if status != http.StatusOK {
 			attempts = append(attempts, fmt.Sprintf("%s: %s", url, statusText(status)))
@@ -103,9 +103,9 @@ func (c *Client) getJSON(ctx context.Context, paths []string, validate func([]by
 			attempts = append(attempts, fmt.Sprintf("%s: decode: %v", url, err))
 			continue
 		}
-		return p, nil
+		return nil
 	}
-	return "", fmt.Errorf("adsb-tui: no usable response (tried %s)", strings.Join(attempts, "; "))
+	return fmt.Errorf("adsb-tui: no usable response (tried %s)", strings.Join(attempts, "; "))
 }
 
 // get fetches url and returns the body plus the HTTP status. Non-200
